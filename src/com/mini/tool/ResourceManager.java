@@ -30,6 +30,7 @@ public class ResourceManager {
 	public static HashMap<String,String> strMap = new HashMap<String,String>();
 	public static ArrayList<String> oldNameList = new ArrayList<String>();
 	public static char[] endCh = {';',')','?','>','<','/','\\',' ','|','!','@','#','$','%','^','&','*','(','-','+','=','.','"',',',':',']','}','[','{'};
+	public static String[] kyeList = {"string","color","id","style","string-array"};
 	/**
 	 * 读取文件配置
 	 * @param configPath
@@ -135,7 +136,6 @@ public class ResourceManager {
 
 		return fileInfoList;
 	}
-
 	/**
 	 * 得到所有的图片资源
 	 * @param fileInfoList
@@ -660,6 +660,32 @@ public class ResourceManager {
 		return fileContent;		
 	}
 	/**
+	 * 源文件处理
+	 * @param fileContent
+	 * @param key 关键字  string、color、stytle、drawable等
+	 * @return
+	 */
+	public static String processSourceFile(String fileContent,String key){
+		String key1 = "R." + key + ".";
+		String key2 = "@" + key + "/";
+		if(fileContent == null || fileContent == "" 
+				|| (!fileContent.contains(key1)
+				&& !fileContent.contains(key2))){
+			return fileContent;
+		}
+		for(String oldName: oldNameList){
+			if(!fileContent.contains(key1 + oldName)&&!fileContent.contains(key2 + oldName)){
+				continue;
+			}
+			for(int i=0;i<endCh.length;i++){
+				fileContent = fileContent.replace(key1 + oldName + endCh[i], key1 + strMap.get(oldName) + endCh[i]);
+				fileContent = fileContent.replace(key2 + oldName + endCh[i], key2 + strMap.get(oldName) + endCh[i]);				
+			}			
+		}
+//		System.out.println(fileContent);
+		return fileContent;		
+	}
+	/**
 	 * 处理存储文件列表
 	 * @param resList
 	 * @return
@@ -681,4 +707,9 @@ public class ResourceManager {
 		}
 		return true;
 	}
+//	public static String processValuesFile(String fileContent){
+//		if(fileContent == null){
+//			return null;
+//		}
+//	}
 }
