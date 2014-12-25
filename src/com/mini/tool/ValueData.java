@@ -6,10 +6,12 @@ package com.mini.tool;
  */
 public class ValueData {
 	public String typeName;
-	public String keyWord;
-	public ValueData(String typeName,String keyWord){
+	public String oldValue;
+	public String newValue;
+	public ValueData(String typeName,String oldValue ,String newValue){
 		this.typeName = typeName;
-		this.keyWord = keyWord;
+		this.oldValue = oldValue;
+		this.newValue = newValue;
 	}
 
 }

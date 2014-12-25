@@ -1,12 +1,9 @@
 package com.mini.tool;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,8 +11,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
 /**
  * 资源操作类，与业务相关
+ * 
  * @author zhukang
  *
  */
@@ -27,12 +26,22 @@ public class ResourceManager {
 	public static HashMap<ResourceClass, ArrayList<ResourceClass>> proMap = new HashMap<ResourceClass, ArrayList<ResourceClass>>();
 	public static ArrayList<File> fileList = new ArrayList<File>();
 	public static HashMap<File, String> fileCache = new HashMap<File, String>();
-	public static HashMap<String,String> strMap = new HashMap<String,String>();
+	public static HashMap<String, String> strMap = new HashMap<String, String>();
 	public static ArrayList<String> oldNameList = new ArrayList<String>();
-	public static char[] endCh = {';',')','?','>','<','/','\\',' ','|','!','@','#','$','%','^','&','*','(','-','+','=','.','"',',',':',']','}','[','{'};
-	public static String[] kyeList = {"string","color","id","style","string-array"};
+	public static char[] endCh = { ';', ')', '?', '>', '<', '/', '\\', ' ',
+			'|', '!', '@', '#', '$', '%', '^', '&', '*', '(', '-', '+', '=',
+			'.', '"', ',', ':', ']', '}', '[', '{', '\n' };
+	public static String[] keyList = { "string", "color", "style",
+			"string-array", "array", "drawable" };
+	public static ArrayList<ValueData> valueList = new ArrayList<ValueData>();
+	public static HashMap<String, ArrayList<ValueData>> valueMap = new HashMap<String, ArrayList<ValueData>>();
+	private static HashMap<String, String> drawableMap = new HashMap<String, String>();
+	private static StringNameGenerator drawableNameGen = new StringNameGenerator();
+	private static ArrayList<String> valueNameList = new ArrayList<String>();
+
 	/**
 	 * 读取文件配置
+	 * 
 	 * @param configPath
 	 * @param encodeType
 	 * @return
@@ -75,6 +84,7 @@ public class ResourceManager {
 
 	/**
 	 * 读取白名单
+	 * 
 	 * @param path
 	 * @param encodeType
 	 * @return
@@ -104,9 +114,9 @@ public class ResourceManager {
 		return whiteList;
 	}
 
-
 	/**
 	 * 得到所有的xml文件
+	 * 
 	 * @param fileInfoList
 	 * @param file
 	 * @return
@@ -136,8 +146,10 @@ public class ResourceManager {
 
 		return fileInfoList;
 	}
+
 	/**
 	 * 得到所有的图片资源
+	 * 
 	 * @param fileInfoList
 	 * @param file
 	 * @return
@@ -183,6 +195,7 @@ public class ResourceManager {
 
 	/**
 	 * 的到所有的java文件资源
+	 * 
 	 * @param fileInfoList
 	 * @param file
 	 * @return
@@ -205,7 +218,7 @@ public class ResourceManager {
 			if (mFileName.endsWith(".java")) {
 				ResourceClass res = new ResourceClass(".java",
 						mFileName.substring(0, mFileName.length() - 5),
-						file.getAbsolutePath(),FileOperator.getFileSize(file),
+						file.getAbsolutePath(), FileOperator.getFileSize(file),
 						new ArrayList<ResourceClass>());
 				fileInfoList.add(res);
 			}
@@ -216,6 +229,7 @@ public class ResourceManager {
 
 	/**
 	 * 合并资源list
+	 * 
 	 * @param list1
 	 * @param list2
 	 * @return
@@ -238,9 +252,9 @@ public class ResourceManager {
 
 	}
 
-
 	/**
 	 * 文件中是否包含字符串
+	 * 
 	 * @param file
 	 * @param matchStr1
 	 * @param matchStr2
@@ -262,15 +276,15 @@ public class ResourceManager {
 				String buf = null;
 				String infoStr = null;
 				while ((infoStr = fread.readLine()) != null) {
-					if(FileOperator.isNote(infoStr)){
+					if (FileOperator.isNote(infoStr)) {
 						continue;
 					}
-					buf = buf + infoStr;	
+					buf = buf + infoStr;
 				}
 				fread.close();
 				fileCache.put(file, buf);
 				return false;
-			} 
+			}
 			String buf = fileCache.get(file);
 			if (buf.contains(matchStr1) || buf.contains(matchStr2)) {
 				return true;
@@ -314,6 +328,7 @@ public class ResourceManager {
 
 	/**
 	 * 建立文件-图片资源映射表，1-n
+	 * 
 	 * @param proRes文件
 	 * @param picRes图片
 	 */
@@ -332,6 +347,7 @@ public class ResourceManager {
 
 	/**
 	 * 区分源资源是否在目标资源用到
+	 * 
 	 * @param mResourceList
 	 * @param targetResourceList
 	 * @param whiteList
@@ -350,19 +366,20 @@ public class ResourceManager {
 		for (int i = 0; i < listSize; i++) {
 			boolean resourceExist = false;
 			ResourceClass res = mResourceList.get(i);
-//			if (res.resourceName.endsWith("_1")) {
-//				resourceName = res.resourceName.substring(0,
-//						res.resourceName.length() - 2);
-//			} else {
-//				resourceName = res.resourceName;
-//			}
+			// if (res.resourceName.endsWith("_1")) {
+			// resourceName = res.resourceName.substring(0,
+			// res.resourceName.length() - 2);
+			// } else {
+			// resourceName = res.resourceName;
+			// }
 			resourceName = res.resourceName;
 			if (whiteList == null) {
 				System.out.println("whitePictureList为空");
 				for (ResourceClass target : targetResourceList) {
-					if (FileOperator.checkStrInStr(target.resourceContent,"." + resourceName)
-							|| FileOperator.checkStrInStr(target.resourceContent, "/"
-									+ resourceName)) {
+					if (FileOperator.checkStrInStr(target.resourceContent, "."
+							+ resourceName)
+							|| FileOperator.checkStrInStr(
+									target.resourceContent, "/" + resourceName)) {
 						System.out.println(res.resourceName + "存在于"
 								+ target.resourcePath);
 						res.isUsed = true;
@@ -380,9 +397,11 @@ public class ResourceManager {
 					resourceExist = true;
 				} else {
 					for (ResourceClass target : targetResourceList) {
-						if (FileOperator.checkStrInStr(target.resourceContent,"." + resourceName)
-								|| FileOperator.checkStrInStr(target.resourceContent, "/"
-										+ resourceName)) {
+						if (FileOperator.checkStrInStr(target.resourceContent,
+								"." + resourceName)
+								|| FileOperator.checkStrInStr(
+										target.resourceContent, "/"
+												+ resourceName)) {
 							System.out
 									.println(res.resourceName + "存在于"
 											+ target.resourcePath
@@ -408,6 +427,7 @@ public class ResourceManager {
 
 	/**
 	 * 对结果进行划分，有用的和无用的，根据isUsed字段
+	 * 
 	 * @param list
 	 * @return
 	 */
@@ -462,6 +482,7 @@ public class ResourceManager {
 
 	/**
 	 * 删除无用资源
+	 * 
 	 * @param list
 	 * @param copyDir
 	 * @param resourceType
@@ -476,14 +497,14 @@ public class ResourceManager {
 		if (resourceType == TEXT_TYPE) {
 			for (ResourceClass res : list) {
 				// System.out.println(res.resourceName);
-				FileOperator.moveTextResource(res.resourcePath, copyDir + File.separator 
-						+ res.resourceName);
+				FileOperator.moveTextResource(res.resourcePath, copyDir
+						+ File.separator + res.resourceName);
 			}
 		} else if (resourceType == BINARY_TYPE) {
 			for (ResourceClass res : list) {
 				// System.out.println(res.resourceName);
-				FileOperator.moveBinaryResource(res.resourcePath, copyDir + File.separator 
-						+ res.resourceName);
+				FileOperator.moveBinaryResource(res.resourcePath, copyDir
+						+ File.separator + res.resourceName);
 			}
 		}
 
@@ -491,6 +512,7 @@ public class ResourceManager {
 
 	/**
 	 * 控制台打印资源list
+	 * 
 	 * @param list
 	 */
 	public static void printResourceList(ArrayList<ResourceClass> list) {
@@ -503,8 +525,10 @@ public class ResourceManager {
 					+ "\t" + obj.isUsed + "\t" + obj.resourceSize);
 		}
 	}
+
 	/**
-	 *存储文件，格式为：xml或者图片文件名（不含类型后缀）+文件类型+文件大小+文件依赖
+	 * 存储文件，格式为：xml或者图片文件名（不含类型后缀）+文件类型+文件大小+文件依赖
+	 * 
 	 * @param list
 	 * @param path
 	 */
@@ -547,9 +571,10 @@ public class ResourceManager {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * 存储文件，格式为：java和xml文件名（包含后缀）+文件大小+包含的图片文件列表
+	 * 
 	 * @param path
 	 */
 	public static void saveProAsTxt(String path) {
@@ -599,117 +624,414 @@ public class ResourceManager {
 			e.printStackTrace();
 		}
 	}
+
 	/**
 	 * 处理String.xml，替换string name
+	 * 
 	 * @param file
 	 * @return
 	 */
-	public static String processStringXml(File file){
-		if(file.isDirectory() || !(file.exists())){
+	public static String processStringXml(File file) {
+		if (file.isDirectory() || !(file.exists())) {
 			System.out.print("file is not avilable!");
 			return null;
 		}
-		try{
-			BufferedReader fread = new BufferedReader(
-					new InputStreamReader(new FileInputStream(file),
-							"UTF-8"));
+		try {
+			BufferedReader fread = new BufferedReader(new InputStreamReader(
+					new FileInputStream(file), "UTF-8"));
 			String buf = "";
 			String infoStr = "";
 			while ((infoStr = fread.readLine()) != null) {
-				if(infoStr.endsWith("</string>")){
+				if (infoStr.endsWith("</string>")) {
 					int start = infoStr.indexOf("\"");
 					int end = infoStr.indexOf(">");
-					String oldName = infoStr.substring(start+1, end-1);
-					String newName = StringNameGenerator.getInstance().generateName();
+					String oldName = infoStr.substring(start + 1, end - 1);
+					String newName = StringNameGenerator.getInstance()
+							.generateName(false);
 					strMap.put(oldName, newName);
 					oldNameList.add(oldName);
-					infoStr = infoStr.replaceFirst("\""+oldName,"\""+newName);
+					infoStr = infoStr.replaceFirst("\"" + oldName, "\""
+							+ newName);
 				}
-				buf = buf + infoStr + "\n";	
+				buf = buf + infoStr + "\n";
 			}
 			System.out.println(buf);
 			fread.close();
 			return buf;
-		}catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;
-		
+
 	}
+
 	/**
 	 * 处理源文件文本内容，做字符串替换
+	 * 
 	 * @param fileContent
 	 * @return
 	 */
-	public static String processSourceFile(String fileContent){
-		if(fileContent == null || fileContent == "" 
-				|| (!fileContent.contains("R.string.")
-				&& !fileContent.contains("@string/"))){
+	public static String processSourceFileForString(String fileContent) {
+		if (fileContent == null
+				|| fileContent == ""
+				|| (!fileContent.contains("R.string.") && !fileContent
+						.contains("@string/"))) {
 			return fileContent;
 		}
-		for(String oldName: oldNameList){
-			if(!fileContent.contains("R.string."+oldName)&&!fileContent.contains("@string/"+oldName)){
+		for (String oldName : oldNameList) {
+			if (!fileContent.contains("R.string." + oldName)
+					&& !fileContent.contains("@string/" + oldName)) {
 				continue;
 			}
-			for(int i=0;i<endCh.length;i++){
-				fileContent = fileContent.replace("R.string."+oldName+endCh[i], "R.string."+strMap.get(oldName)+endCh[i]);
-				fileContent = fileContent.replace("@string/"+oldName+endCh[i], "@string/"+strMap.get(oldName)+endCh[i]);				
-			}			
+			for (int i = 0; i < endCh.length; i++) {
+				fileContent = fileContent.replace("R.string." + oldName
+						+ endCh[i], "R.string." + strMap.get(oldName)
+						+ endCh[i]);
+				fileContent = fileContent
+						.replace("@string/" + oldName + endCh[i], "@string/"
+								+ strMap.get(oldName) + endCh[i]);
+			}
 		}
-//		System.out.println(fileContent);
-		return fileContent;		
+		// System.out.println(fileContent);
+		return fileContent;
 	}
+
 	/**
 	 * 源文件处理
+	 * 
 	 * @param fileContent
-	 * @param key 关键字  string、color、stytle、drawable等
+	 * @param key
+	 *            关键字 string、color、stytle、drawable等
 	 * @return
 	 */
-	public static String processSourceFile(String fileContent,String key){
+	public static String processSourceFile(String fileContent, String key) {
 		String key1 = "R." + key + ".";
 		String key2 = "@" + key + "/";
-		if(fileContent == null || fileContent == "" 
-				|| (!fileContent.contains(key1)
-				&& !fileContent.contains(key2))){
+
+		if (fileContent == null || fileContent == ""
+				|| (!fileContent.contains(key1) && !fileContent.contains(key2))) {
 			return fileContent;
 		}
-		for(String oldName: oldNameList){
-			if(!fileContent.contains(key1 + oldName)&&!fileContent.contains(key2 + oldName)){
+		for (ValueData data : valueMap.get(key)) {
+			if (!fileContent.contains(key1 + data.oldValue)
+					&& !fileContent.contains(key2 + data.oldValue)
+					|| fileContent.contains("android." + key1 + data.oldValue)) {
 				continue;
 			}
-			for(int i=0;i<endCh.length;i++){
-				fileContent = fileContent.replace(key1 + oldName + endCh[i], key1 + strMap.get(oldName) + endCh[i]);
-				fileContent = fileContent.replace(key2 + oldName + endCh[i], key2 + strMap.get(oldName) + endCh[i]);				
-			}			
+			for (int i = 0; i < endCh.length; i++) {
+				fileContent = fileContent.replace(key1 + data.oldValue
+						+ endCh[i], key1 + data.newValue + endCh[i]);
+				fileContent = fileContent.replace(key2 + data.oldValue
+						+ endCh[i], key2 + data.newValue + endCh[i]);
+			}
 		}
-//		System.out.println(fileContent);
-		return fileContent;		
+		if (fileContent.contains("<style ")) {
+			String[] strList = fileContent.split("\n");
+			for (int i = 0; i < strList.length; i++) {
+				if (strList[i].contains("<style ")
+						&& strList[i].contains("parent=")) {
+					int s = strList[i].indexOf("parent=");
+					int e = strList[i].indexOf("\"", s + 8);
+					String parName = strList[i].substring(s + 8, e);
+					for (ValueData a : valueMap.get("style")) {
+						if (parName.equals(a.oldValue)) {
+							fileContent = fileContent.replace("parent=\""
+									+ a.oldValue, "parent=\"" + a.newValue);
+						}
+					}
+				}
+			}
+		}
+		// System.out.println(fileContent);
+		return fileContent;
 	}
+
 	/**
-	 * 处理存储文件列表
+	 * 源文件处理
+	 * 
+	 * @param fileContent
+	 * @return
+	 */
+	public static String processSourceFile(String fileContent) {
+		if (fileContent == null || fileContent == ""
+				|| (!fileContent.contains("R.") && !fileContent.contains("@"))) {
+			return fileContent;
+		}
+		for (int i = 0; i < keyList.length; i++) {
+			fileContent = processSourceFile(fileContent, keyList[i]);
+		}
+		return fileContent;
+	}
+
+	/**
+	 * 存储替换后的文件
+	 * 
 	 * @param resList
 	 * @return
 	 */
-	public static boolean saveNewSourceFileList(ArrayList<ResourceClass> resList){
-		if(resList == null){
+	public static boolean saveNewSourceFileList(ArrayList<ResourceClass> resList) {
+		if (null == resList) {
 			return false;
 		}
-		for(ResourceClass res : resList){
-			if(res.resourceContent == null){
-				System.out.println("file is null,path:" + res.resourcePath );
+		for (ResourceClass res : resList) {
+			if (res.resourceContent == null) {
+				System.out.println("file is null,path:" + res.resourcePath);
 				continue;
 			}
 			String str = processSourceFile(res.resourceContent);
-			if (!str.equals(res.resourceContent)){
-				System.out.println("正在替换源文件:" + res.resourceName + res.resourceType + "  文件路径：" + res.resourcePath);
+			if (!str.equals(res.resourceContent)) {
+				System.out.println("正在替换源文件:" + res.resourceName
+						+ res.resourceType + "  文件路径：" + res.resourcePath);
 				FileOperator.saveAsFile(res.resourcePath, str);
-			}		
+			}
 		}
 		return true;
 	}
-//	public static String processValuesFile(String fileContent){
-//		if(fileContent == null){
-//			return null;
-//		}
-//	}
+
+	/**
+	 * 处理存储文件列表
+	 * 
+	 * @param resList
+	 * @return
+	 */
+	public static boolean saveNewSourceFileListForString(
+			ArrayList<ResourceClass> resList) {
+		if (resList == null) {
+			return false;
+		}
+		for (ResourceClass res : resList) {
+			if (res.resourceContent == null) {
+				System.out.println("file is null,path:" + res.resourcePath);
+				continue;
+			}
+			String str = processSourceFileForString(res.resourceContent);
+			if (!str.equals(res.resourceContent)) {
+				System.out.println("正在替换源文件:" + res.resourceName
+						+ res.resourceType + "  文件路径：" + res.resourcePath);
+				FileOperator.saveAsFile(res.resourcePath, str);
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 得到value文件下所有关键字旧值
+	 * 
+	 * @param fileContent
+	 */
+	public static void getValuesName(String fileContent) {
+		if (fileContent == null) {
+			return;
+		}
+		String[] strList = fileContent.split("\n");
+		for (int i = 0; i < strList.length; i++) {
+			String infoStr = strList[i];
+			for (int j = 0; j < keyList.length; j++) {
+				if (infoStr.contains("<" + keyList[j] + " ")) {
+					int start = infoStr.indexOf("\"");
+					int end = infoStr.indexOf("\"", start + 1);
+					String oldName = infoStr.substring(start + 1, end);
+					if (keyList[j].equals("drawable")) {
+						drawableNameGen.addWhiteName(oldName);
+					} else {
+						StringNameGenerator.getInstance().addWhiteName(oldName);
+					}
+					System.out.println("旧value的名称：" + oldName);
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * 处理value文件夹下的文件
+	 * 
+	 * @param fileContent
+	 * @return
+	 */
+	public static String processValuesFile(String fileContent) {
+		if (fileContent == null) {
+			return null;
+		}
+		String[] strList = fileContent.split("\n");
+		String newContent = "";
+		for (int i = 0; i < strList.length; i++) {
+			String infoStr = strList[i];
+			for (int j = 0; j < keyList.length; j++) {
+				if (infoStr.contains("<" + keyList[j] + " ")) {
+					int start = infoStr.indexOf("\"");
+					int end = infoStr.indexOf("\"", start + 1);
+					String oldName = infoStr.substring(start + 1, end);
+					String newName;
+					if(valueNameList.contains(oldName)){
+						continue;
+					}
+					if (keyList[j].equals("drawable")) {
+						newName  = drawableNameGen.generateName(false);
+					}else{
+						newName = StringNameGenerator.getInstance()
+								.generateName(false);
+					}
+					ValueData data = new ValueData(keyList[j], oldName, newName);
+					valueList.add(data);
+					infoStr = infoStr.replace("\"" + oldName, "\"" + newName);
+					String key;
+					if (keyList[j].equals("string-array")) {
+						key = "array";
+					} else {
+						key = keyList[j];
+					}
+					ArrayList<ValueData> list = valueMap.get(key);
+					if (null == list) {
+						list = new ArrayList<ValueData>();
+					}
+					list.add(data);
+					valueMap.put(key, list);
+					valueNameList.add(oldName);
+					break;
+				}
+			}
+			newContent = newContent + infoStr + "\n";
+		}
+		return newContent;
+	}
+
+	/**
+	 * 处理value文件夹下的文件
+	 * 
+	 * @param file
+	 * @return
+	 */
+	public static String processValuesFile(File file) {
+		if (file.isDirectory() || !(file.exists())) {
+			System.out.print("file is not avilable!");
+			return null;
+		}
+		try {
+			BufferedReader fread = new BufferedReader(new InputStreamReader(
+					new FileInputStream(file), "UTF-8"));
+			String buf = "";
+			String infoStr = "";
+			while ((infoStr = fread.readLine()) != null) {
+				// if(infoStr.contains("type=\"id\"")){
+				// int start = infoStr.indexOf("\"");
+				// int end = infoStr.indexOf("\"", start + 1);
+				// String oldName = infoStr.substring(start+1,end);
+				// String newName =
+				// StringNameGenerator.getInstance().generateName(false);
+				// ValueData data = new ValueData("id",oldName,newName);
+				// valueList.add(data);
+				// infoStr = infoStr.replace("\""+oldName, "\""+newName);
+				// ArrayList<ValueData> list = valueMap.get("id");
+				// if(null == list){
+				// list = new ArrayList<ValueData>();
+				// }
+				// list.add(data);
+				// valueMap.put("id", list);
+				// }else{
+				for (int i = 0; i < keyList.length; i++) {
+					if (infoStr.contains("<" + keyList[i] + " ")) {
+						int start = infoStr.indexOf("\"");
+						int end = infoStr.indexOf("\"", start + 1);
+						String oldName = infoStr.substring(start + 1, end);
+						String newName = StringNameGenerator.getInstance()
+								.generateName(false);
+						if (keyList[i].equals("drawable")) {
+							drawableNameGen.addWhiteName(newName);
+						}
+						ValueData data = new ValueData(keyList[i], oldName,
+								newName);
+						valueList.add(data);
+						infoStr = infoStr.replace("\"" + oldName, "\""
+								+ newName);
+						String key;
+						if (keyList[i].equals("string-array")) {
+							key = "array";
+						} else {
+							key = keyList[i];
+						}
+						ArrayList<ValueData> list = valueMap.get(key);
+						if (null == list) {
+							list = new ArrayList<ValueData>();
+						}
+						list.add(data);
+						valueMap.put(key, list);
+						break;
+						// }
+					}
+				}
+				buf = buf + infoStr + "\n";
+			}
+			// System.out.println(buf);
+			fread.close();
+			return buf;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 处理drawable文件名称替换
+	 * 
+	 * @param list
+	 */
+	public static void processDrawableFileName(ArrayList<ResourceClass> list) {
+		if (null == list) {
+			return;
+		}
+		for (ResourceClass res : list) {
+			drawableNameGen.addWhiteName(res.resourceName);
+		}
+		for (ResourceClass res : list) {
+			if (null == res) {
+				System.out.println("The drawable file is null!");
+				continue;
+			}
+			if (drawableMap.containsKey(res.resourceName)) {
+				System.out.println("drawable文件原名：" + res.resourceName + "  现名："
+						+ drawableMap.get(res.resourceName) + " 类型："
+						+ res.resourceType);
+				continue;
+			}
+			String newName = drawableNameGen.generateName(true);
+			drawableMap.put(res.resourceName, newName);
+			System.out.println("drawable文件原名：" + res.resourceName + "  现名："
+					+ newName + " 类型：" + res.resourceType);
+			ValueData data = new ValueData("drawable", res.resourceName,
+					newName);
+			ArrayList<ValueData> dataList;
+			if (valueMap.get("drawable") == null) {
+				dataList = new ArrayList<ValueData>();
+			} else {
+				dataList = valueMap.get("drawable");
+			}
+			dataList.add(data);
+			valueMap.put("drawable", dataList);
+		}
+	}
+
+	/**
+	 * 重命名drawable文件夹下的文件
+	 * 
+	 * @param list
+	 */
+	public static void renameDrawableFile(ArrayList<ResourceClass> list) {
+		if (list == null) {
+			System.out.println("The drawable file list is null!");
+			return;
+		}
+		for (ResourceClass res : list) {
+			if (null == res) {
+				System.out.println("The drawable file is null!");
+				continue;
+			}
+			File file = new File(res.resourcePath);
+			FileOperator.renameFile(file.getParent(), res.resourceName
+					+ res.resourceType, drawableMap.get(res.resourceName)
+					+ res.resourceType);
+			System.out.println("重命名drawable文件： 原名" + res.resourceName + " 现名："
+					+ drawableMap.get(res.resourceName));
+		}
+	}
 }

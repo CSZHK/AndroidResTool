@@ -15,9 +15,9 @@ public class StringNameGenerator {
 	private static char[] upperAlp={'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
 	private static char[] num={'1','2','3','4','5','6','7','8','9'};
 	public static char[] allCh = (String.valueOf(lowerAlp) + String.valueOf(upperAlp) + String.valueOf(num)).toCharArray();
-	private static ArrayList<String> nameList = new ArrayList<String>();
-	private static HashMap<Integer,ArrayList<String>> nameMap = new HashMap<Integer,ArrayList<String>>();
-	private static ArrayList<String> whiteNameList = new ArrayList<String>();
+	private ArrayList<String> nameList = new ArrayList<String>();
+	private HashMap<Integer,ArrayList<String>> nameMap = new HashMap<Integer,ArrayList<String>>();
+	private ArrayList<String> whiteNameList = new ArrayList<String>();
 	/**
 	 * 构造函数
 	 */
@@ -63,12 +63,26 @@ public class StringNameGenerator {
 	public void initWhiteList(){
 		whiteNameList.add("if");
 		whiteNameList.add("do");
+		whiteNameList.add("DO");
+		whiteNameList.add("IF");
+		whiteNameList.add("aux");
+	}
+	/**
+	 * 添加白名单
+	 * @param word
+	 */
+	public void addWhiteName(String word){
+		if(word == null){
+			return;
+		}
+		whiteNameList.add(word);
 	}
 	/**
 	 * 名称生成器
+	 * @param beLower
 	 * @return
 	 */
-	public String generateName(){	
+	public String generateName(boolean beLower){	
 		int n;
 		if(nameMap.size() == 1){
 			n=1;
@@ -76,19 +90,20 @@ public class StringNameGenerator {
 		else{
 			n=nameMap.size()-1;
 		}
-		String str = generateName(n);
+		String str = generateName(n,beLower);
 		if( null!=str){
 			return str;
 		}else{
-			return generateName(n+1);
+			return generateName(n+1,beLower);
 		}
 	}
 	/**
 	 * 生成n位的名称，前提是n-1为全都生成完毕
 	 * @param n
+	 * @param beLower
 	 * @return
 	 */
-	public String generateName(int n){
+	public String generateName(int n, boolean beLower){
 		ArrayList<String> shortList = nameMap.get(n-1);
 		ArrayList<String> longList;
 		if(!nameMap.containsKey(n)){
@@ -100,9 +115,12 @@ public class StringNameGenerator {
 			for(int j=0;j<allCh.length;j++){
 				String str="";
 				str = shortList.get(i) + String.valueOf(allCh[j]);
-				if(longList.contains(str) || whiteNameList.contains(str) || !isMatch(str)){
+				if(longList.contains(str) || whiteNameList.contains(str) 
+						|| !isMatch(str) || nameList.contains(str)){
 					continue;
-				}else{
+				}
+				if((beLower && isMatchLower(str))
+						|| !beLower){
 					longList.add(str);
 					nameMap.put(n, longList);
 					nameList.add(str);
@@ -120,12 +138,22 @@ public class StringNameGenerator {
 		return nameMap.size()-1;
 	}
 	/**
-	 * 校验正则
+	 * 校验正则,是否匹配首字母不含字母
 	 * @param str
 	 * @return
 	 */
-	public boolean isMatch(String str){
+	public static boolean isMatch(String str){
 		Pattern p = Pattern.compile("[a-zA-Z_$][a-zA-Z0-9_$]*");
+		Matcher m = p.matcher(str);
+		return m.matches();
+	}
+	/**
+	 *  校验正则,是否匹配首字母不含字母,且字母均为小写
+	 * @param str
+	 * @return
+	 */
+	public static boolean isMatchLower(String str){
+		Pattern p = Pattern.compile("[a-z_$][a-z0-9_$]*");
 		Matcher m = p.matcher(str);
 		return m.matches();
 	}

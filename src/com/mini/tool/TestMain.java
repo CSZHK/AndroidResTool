@@ -12,7 +12,10 @@ public class TestMain {
 	private static ArrayList<ResourceClass> allPicList = new ArrayList<ResourceClass>();
 	private static ArrayList<ResourceClass> allXmlList = new ArrayList<ResourceClass>();
 	private static ArrayList<ResourceClass> rootXmlList = new ArrayList<ResourceClass>();
+	private static ArrayList<ResourceClass> rootPicList = new ArrayList<ResourceClass>();
+	private static ArrayList<ResourceClass> valueXmlList;
 	private static ArrayList<ResourceClass> picTargetList;
+	private static ArrayList<ResourceClass> drawableList;
 	private static ArrayList<String> projectList;
 	private static ConfigClass cfg;
 	private static String stringXmlContent;
@@ -55,9 +58,22 @@ public class TestMain {
 //		System.out.print(File.separator);
 //		 String temp = FileOperator.readFileContent(new File("C:\\Users\\zhukang\\Desktop\\Android Dev Src\\android\\new\\tbadkcore\\res\\layout\\account_forbid_activity.xml"));
 //		 ResourceManager.processSourceFile(temp);
-		initConfig("C:\\Users\\zhukang\\Desktop\\config.txt");
+//		initConfig("C:\\Users\\zhukang\\Desktop\\config.txt");
 		initResource();
-		printResList(getValuesDirFile(rootXmlList));
+
+		valueNameGenerate();
+		drawableNameGenerate();
+		valueNameReplace();
+		drawableNameReplace();
+
+
+//		valueNameReplace();
+//		for(int i=0;i<ResourceManager.keyList.length;i++){
+//			System.out.println(ResourceManager.keyList[i]);
+//			for(ValueData d:ResourceManager.valueMap.get(ResourceManager.keyList[i])){
+//				System.out.println("oldName:" + d.oldValue + "  newName:"+d.newValue);
+//			}
+//		}
 	}
 
 
@@ -103,9 +119,10 @@ public class TestMain {
 			File file3 = new File(proName + File.separator + "AndroidManifest.xml");
 			System.out.println("得到" + proName +"工程的源文件。。。");
 			if(proName.equals(cfg.picPath)){
-				System.out.println("得到根路径res下的xml文件");
+				System.out.println("得到根路径res下的文件");
 				ResourceManager.getAllXmlResource(rootXmlList, file2);
 				ResourceManager.getAllXmlResource(rootXmlList, file3);
+				ResourceManager.getAllPictureResource(rootPicList, file2);
 			}
 			ResourceManager.getAllXmlResource(xmlList, file3);
 			ResourceManager.getAllXmlResource(xmlList, file2);
@@ -203,12 +220,15 @@ public class TestMain {
 		File stringXml = new File(configPath);
 		stringXmlContent =  ResourceManager.processStringXml(stringXml);
 	}
+	/**
+	 * string替换
+	 */
 	public static void stringNameReplace(){
 		System.out.println("string.xml 参数替换..");
 		processStringXml(cfg.picPath + File.separator +"res" +File.separator +"values"+File.separator +"strings.xml");
 		System.out.println("string.xml 参数替换结束！");
 		System.out.println("源文件字符串引用替换...");
-		ResourceManager.saveNewSourceFileList(picTargetList);	
+		ResourceManager.saveNewSourceFileListForString(picTargetList);	
 		System.out.println("源文件字符串引用替换结束！");
 		boolean isSuccess = FileOperator.saveAsFile(cfg.picPath + File.separator +"res" +File.separator +"values"+File.separator +"strings.xml",stringXmlContent);
 		if(isSuccess){
@@ -216,6 +236,52 @@ public class TestMain {
 		}else{
 			System.out.print("strings.xml文件替换失败！");
 		}
+	}
+	/**
+	 * value文件处理混淆
+	 */
+	public static void valueNameReplace(){
+		System.out.println("源文件引用替换...");
+		ResourceManager.saveNewSourceFileList(picTargetList);	
+		System.out.println("源文件引用替换结束！");
+		System.out.println("value文件夹 引用替换...");
+		for(ResourceClass res : valueXmlList){
+			FileOperator.saveAsFile(res.resourcePath, ResourceManager.processSourceFile(res.resourceContent));
+		}
+		System.out.println("value文件夹 引用替换结束！");
+	}
+	public static void drawableNameReplace(){
+		System.out.println("drawable文件夹 引用替换...");
+		ResourceManager.renameDrawableFile(drawableList);
+		System.out.println("drawable文件夹 引用替换结束！");
+	}
+	/**
+	 * value文件内容关键字新名称生成
+	 */
+	public static void valueNameGenerate(){
+		System.out.println("value文件夹下  关键字新名称生成..");
+	    valueXmlList = getValuesDirFile(rootXmlList);
+		for(ResourceClass res:valueXmlList){
+			if(res.resourcePath.contains("dimen")){
+				continue;
+			}
+			System.out.println("获取Value下面所有的旧名称。。");
+			ResourceManager.getValuesName(res.resourceContent);
+			System.out.println("获取Value下面所有的旧名称结束");
+			res.resourceContent = ResourceManager.processValuesFile(res.resourceContent);
+		}
+		System.out.println("value文件夹下  关键字新名称生成结束！");
+	}
+	/**
+	 * drawable 文件新名称生成
+	 */
+	public static void drawableNameGenerate(){
+		System.out.println("drawable文件夹下  新文件名生成..");
+		ArrayList<ResourceClass> drawableList1 = getDrawableDirFile(rootXmlList);
+		ArrayList<ResourceClass> drawableList2 = getDrawableDirFile(rootPicList);
+		drawableList = ResourceManager.merge2List(drawableList1, drawableList2);
+		ResourceManager.processDrawableFileName(drawableList);
+		System.out.println("drawable文件夹下  文件名生成结束！");
 	}
 	/**
 	 * 得到res/values文件夹下的文件列表
@@ -232,6 +298,20 @@ public class TestMain {
 		return valueFileList;			
 	}
 	/**
+	 * 得带res/drawableXXX文件夹下的文件
+	 * @param list
+	 * @return
+	 */
+	public static ArrayList<ResourceClass> getDrawableDirFile(ArrayList<ResourceClass> list){
+		ArrayList<ResourceClass> valueFileList = new ArrayList<ResourceClass>();
+		for(ResourceClass res:list){
+			if(res.resourcePath.contains("res" + File.separator + "drawable")){
+				valueFileList.add(res);
+			}
+		}
+		return valueFileList;
+	}
+	/**
 	 * 打印list
 	 * @param list
 	 */
@@ -240,7 +320,7 @@ public class TestMain {
 			return;
 		}
 		for(ResourceClass res : list){
-			System.out.println(res.resourcePath);
+			System.out.println(res.resourceName);
 		}
 	}
 
